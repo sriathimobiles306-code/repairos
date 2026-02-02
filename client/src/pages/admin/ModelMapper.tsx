@@ -15,8 +15,8 @@ export default function ModelMapper() {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
-            const headers = { 'Authorization': `Bearer ${token}` };
+            const adminToken = localStorage.getItem('adminToken');
+            const headers = { 'Authorization': `Bearer ${adminToken}` };
 
             const [phonesRes, screensRes] = await Promise.all([
                 fetch('/api/admin/unmapped-phones', { headers }),

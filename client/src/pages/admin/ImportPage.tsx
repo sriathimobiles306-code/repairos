@@ -44,12 +44,12 @@ export default function ImportPage() {
         if (!preview.length) return;
         setIsUploading(true);
         try {
-            const token = localStorage.getItem('token');
+            const adminToken = localStorage.getItem('adminToken');
             const res = await fetch('/api/admin/import/phones', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${adminToken}`
                 },
                 body: JSON.stringify({ phones: preview })
             });

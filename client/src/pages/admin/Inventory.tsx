@@ -14,9 +14,9 @@ export default function InventoryPage() {
 
     const fetchInventory = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const adminToken = localStorage.getItem('adminToken');
             const res = await fetch('/api/admin/inventory', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${adminToken}` }
             });
             if (res.ok) {
                 setSkus(await res.json());

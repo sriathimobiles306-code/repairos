@@ -38,11 +38,9 @@ export default function BillingPage() {
     }, []);
 
     const fetchInventory = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) return;
         try {
             const res = await fetch('/api/admin/inventory', {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
             });
             if (res.ok) {
                 const data = await res.json();

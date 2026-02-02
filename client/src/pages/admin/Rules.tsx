@@ -35,10 +35,10 @@ export default function RulesAdmin() {
 
     const handleApprove = async (id: number) => {
         try {
-            const token = localStorage.getItem('token');
+            const adminToken = localStorage.getItem('adminToken');
             const res = await fetch(`/api/admin/rules/${id}/approve`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${adminToken}` }
             });
             if (res.ok) {
                 // Remove from list

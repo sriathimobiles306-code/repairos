@@ -28,7 +28,6 @@ export default function ScreensAdmin() {
         setMessage(null);
 
         try {
-            const token = localStorage.getItem('token');
             const payload = {
                 ...formData,
                 diagonal: parseFloat(formData.diagonal),
@@ -45,7 +44,7 @@ export default function ScreensAdmin() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
                 body: JSON.stringify(payload)
             });

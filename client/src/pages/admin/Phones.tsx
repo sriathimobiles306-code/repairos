@@ -14,14 +14,13 @@ export default function PhonesAdmin() {
         setMessage(null);
 
         try {
-            const token = localStorage.getItem('token');
             const aliasArray = aliases.split(',').map(a => a.trim()).filter(a => a.length > 0);
 
             const res = await fetch('/api/admin/phones', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                 },
                 body: JSON.stringify({
                     brand,

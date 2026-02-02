@@ -31,7 +31,7 @@ export default function PartsAdmin() {
     const fetchParts = async (q: string) => {
         if (!q) return;
         const res = await fetch(`/api/parts/search?q=${q}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         const data = await res.json();
         setParts(data);
@@ -39,7 +39,7 @@ export default function PartsAdmin() {
 
     const fetchCompatibility = async (id: number) => {
         const res = await fetch(`/api/parts/${id}/compatibility`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
         });
         setCompatList(await res.json());
     };
