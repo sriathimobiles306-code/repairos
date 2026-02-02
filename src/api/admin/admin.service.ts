@@ -240,7 +240,7 @@ export class AdminService {
         }
     }
 
-    async importPhones(data: { brand: string; model: string; aliases?: string }[]) {
+    async importPhones(data: { brand: string; model: string; aliases?: string; diagonal?: number; width?: number; height?: number }[]) {
         const client = await this.pool.connect();
         try {
             await client.query('BEGIN');
@@ -249,7 +249,7 @@ export class AdminService {
             let skippedCount = 0;
 
             for (const item of data) {
-                // 1. Get/Create Brand
+                // 1. Get/Create Brand (Cache could optimize this)
                 let brandId: number;
                 const brandRes = await client.query('SELECT id FROM brands WHERE name ILIKE $1', [item.brand]);
 
@@ -264,19 +264,52 @@ export class AdminService {
                 }
 
                 // 2. Insert Model if not exists
+                let modelId: number;
                 const dupCheck = await client.query(
                     'SELECT id FROM mobile_models WHERE brand_id = $1 AND name ILIKE $2',
                     [brandId, item.model]
                 );
 
-                if (dupCheck.rows.length === 0) {
-                    await client.query(
-                        'INSERT INTO mobile_models (brand_id, name, aliases) VALUES ($1, $2, $3)',
+                if (dupCheck.rows.length > 0) {
+                    modelId = dupCheck.rows[0].id;
+                    skippedCount++;
+                } else {
+                    const newModel = await client.query(
+                        'INSERT INTO mobile_models (brand_id, name, aliases) VALUES ($1, $2, $3) RETURNING id',
                         [brandId, item.model, item.aliases ? [item.aliases] : []]
                     );
+                    modelId = newModel.rows[0].id;
                     addedCount++;
-                } else {
-                    skippedCount++;
+                }
+
+                // 3. Handle Screen Dimensions (if provided)
+                if (item.width && item.height && item.diagonal) {
+                    // Check if a screen profile matches exactly (within 0.1mm)
+                    const screenRes = await client.query(`
+                        SELECT id FROM screens 
+                        WHERE ABS(width_mm - $1) < 0.1 
+                        AND ABS(height_mm - $2) < 0.1
+                        AND type = 'FLAT' -- Assume import is flat
+                    `, [item.width, item.height]);
+
+                    let screenId: number;
+                    if (screenRes.rows.length > 0) {
+                        screenId = screenRes.rows[0].id;
+                    } else {
+                        // Create new Screen Profile
+                        const newScreen = await client.query(`
+                            INSERT INTO screens (type, diagonal_inch, width_mm, height_mm, corner_radius_mm, cutout_type)
+                            VALUES ('FLAT', $1, $2, $3, 2.5, 'NONE') RETURNING id
+                        `, [item.diagonal, item.width, item.height]);
+                        screenId = newScreen.rows[0].id;
+                    }
+
+                    // Map it
+                    await client.query(`
+                        INSERT INTO model_screen_map (model_id, screen_id, is_active, verification_source)
+                        VALUES ($1, $2, TRUE, 'BULK_IMPORT')
+                        ON CONFLICT (model_id) DO UPDATE SET screen_id = $2, is_active = TRUE
+                    `, [modelId, screenId]);
                 }
             }
 

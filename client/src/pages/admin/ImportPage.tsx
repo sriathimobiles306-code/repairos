@@ -22,7 +22,7 @@ export default function ImportPage() {
             const lines = text.split('\n');
             const data = [];
 
-            // Assume Header: Brand,Model,Aliases
+            // Assume Header: Brand,Model,Aliases,Diagonal,Width,Height
             for (let i = 1; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
@@ -31,7 +31,10 @@ export default function ImportPage() {
                     data.push({
                         brand: cols[0].trim(),
                         model: cols[1].trim(),
-                        aliases: cols[2] ? cols[2].trim() : ''
+                        aliases: cols[2] ? cols[2].trim().replace(/"/g, '') : '', // Handle quotes
+                        diagonal: cols[3] ? parseFloat(cols[3]) : undefined,
+                        width: cols[4] ? parseFloat(cols[4]) : undefined,
+                        height: cols[5] ? parseFloat(cols[5]) : undefined
                     });
                 }
             }

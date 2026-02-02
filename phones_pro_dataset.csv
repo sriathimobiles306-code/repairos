@@ -1,0 +1,98 @@
+Brand,Model,Aliases,Diagonal(inch),Width(mm),Height(mm)
+Apple,iPhone 15 Pro Max,"A3106",6.7,154.52,71.32
+Apple,iPhone 15 Pro,"A3102",6.1,140.68,64.93
+Apple,iPhone 15 Plus,"A3094",6.7,154.52,71.32
+Apple,iPhone 15,"A3090",6.1,140.68,64.93
+Apple,iPhone 14 Pro Max,"A2894",6.7,154.52,71.32
+Apple,iPhone 14 Pro,"A2890",6.1,140.68,64.93
+Apple,iPhone 14 Plus,"A2886",6.7,154.52,71.32
+Apple,iPhone 14,"A2882",6.1,140.68,64.93
+Apple,iPhone 13 Pro Max,"A2643",6.7,154.52,71.32
+Apple,iPhone 13 Pro,"A2638",6.1,140.68,64.93
+Apple,iPhone 13,"A2633",6.1,140.68,64.93
+Apple,iPhone 13 Mini,"A2628",5.4,124.54,57.48
+Apple,iPhone 12 Pro Max,"A2411",6.7,154.52,71.32
+Apple,iPhone 12 Pro,"A2407",6.1,140.68,64.93
+Apple,iPhone 12,"A2403",6.1,140.68,64.93
+Apple,iPhone 12 Mini,"A2399",5.4,124.54,57.48
+Apple,iPhone 11 Pro Max,"A2218",6.5,149.9,69.19
+Apple,iPhone 11 Pro,"A2215",5.8,133.76,61.74
+Apple,iPhone 11,"A2221",6.1,140.68,64.93
+Apple,iPhone XS Max,"A2101",6.5,149.9,69.19
+Apple,iPhone XS,"A2097",5.8,133.76,61.74
+Apple,iPhone XR,"A2105",6.1,140.68,64.93
+Apple,iPhone X,"A1901",5.8,133.76,61.74
+Apple,iPhone 8 Plus,"A1897",5.5,121.76,68.49
+Apple,iPhone 8,"A1905",4.7,104.05,58.53
+Apple,iPhone 7 Plus,"A1784",5.5,121.76,68.49
+Apple,iPhone 7,"A1778",4.7,104.05,58.53
+Apple,iPhone 6S Plus,"A1687",5.5,121.76,68.49
+Apple,iPhone 6S,"A1688",4.7,104.05,58.53
+Samsung,Galaxy S24 Ultra,"SM-S928B",6.8,156.82,72.38
+Samsung,Galaxy S24 Plus,"SM-S926B",6.7,154.52,71.32
+Samsung,Galaxy S24,"SM-S921B",6.2,142.99,65.99
+Samsung,Galaxy S23 Ultra,"SM-S918B",6.8,156.54,73
+Samsung,Galaxy S23 Plus,"SM-S916B",6.6,152.21,70.25
+Samsung,Galaxy S23,"SM-S911B",6.1,140.68,64.93
+Samsung,Galaxy S23 FE,"SM-S711B",6.4,147.6,68.12
+Samsung,Galaxy S22 Ultra,"SM-S908B",6.8,156.54,73
+Samsung,Galaxy S22 Plus,"SM-S906B",6.6,152.21,70.25
+Samsung,Galaxy S22,"SM-S901B",6.1,140.68,64.93
+Samsung,Galaxy S21 Ultra,"SM-G998B",6.8,157.51,70.88
+Samsung,Galaxy S21 Plus,"SM-G996B",6.7,155.19,69.84
+Samsung,Galaxy S21,"SM-G991B",6.2,143.61,64.62
+Samsung,Galaxy S21 FE,"SM-G990B",6.4,148.24,66.71
+Samsung,Galaxy S20 Ultra,"SM-G988B",6.9,159.82,71.92
+Samsung,Galaxy S20 Plus,"SM-G986B",6.7,155.19,69.84
+Samsung,Galaxy S20,"SM-G981B",6.2,143.61,64.62
+Samsung,Galaxy S20 FE,"SM-G780F",6.5,150.56,67.75
+Samsung,Galaxy S10 Plus,"SM-G975F",6.4,146.91,69.59
+Samsung,Galaxy S10,"SM-G973F",6.1,140.03,66.33
+Samsung,Galaxy S10e,"SM-G970F",5.8,133.14,63.07
+Samsung,Galaxy S9 Plus,"SM-G965F",6.2,141.61,68.89
+Samsung,Galaxy S9,"SM-G960F",5.8,132.48,64.45
+Samsung,Galaxy S8 Plus,"SM-G955F",6.2,141.61,68.89
+Samsung,Galaxy S8,"SM-G950F",5.8,132.48,64.45
+Samsung,Galaxy S7 Edge,"SM-G935F",5.5,121.76,68.49
+Samsung,Galaxy S7,"SM-G930F",5.1,112.9,63.51
+Samsung,Galaxy S6 Edge,"SM-G925F",5.1,112.9,63.51
+Samsung,Galaxy S6,"SM-G920F",5.1,112.9,63.51
+Samsung,Galaxy Note 20 Ultra,"SM-N986B",6.9,158.84,74.07
+Samsung,Galaxy Note 20,"SM-N981B",6.7,155.19,69.84
+Samsung,Galaxy Note 10 Plus,"SM-N975F",6.8,156.09,73.94
+Samsung,Galaxy Note 10,"SM-N970F",6.3,144.62,68.5
+Samsung,Galaxy Note 9,"SM-N960F",6.4,146.18,71.11
+Samsung,Galaxy Note 8,"SM-N950F",6.3,143.9,70
+Samsung,Galaxy Note 5,"SM-N920F",5.7,126.19,70.98
+Samsung,Galaxy A55,"SM-A556B",6.6,152.21,70.25
+Samsung,Galaxy A54 5G,"SM-A546B",6.4,147.6,68.12
+Samsung,Galaxy A34 5G,"SM-A346B",6.6,152.21,70.25
+Samsung,Galaxy A15,"SM-A155F",6.5,149.9,69.19
+Samsung,Galaxy A53 5G,"SM-A536B",6.5,150.56,67.75
+Samsung,Galaxy A73 5G,"SM-A736B",6.7,155.19,69.84
+Samsung,Galaxy A52s 5G,"SM-A528B",6.5,150.56,67.75
+Samsung,Galaxy A52,"SM-A525F",6.5,150.56,67.75
+Samsung,Galaxy A72,"SM-A725F",6.7,155.19,69.84
+Samsung,Galaxy A51,"SM-A515F",6.5,150.56,67.75
+Samsung,Galaxy A71,"SM-A715F",6.7,155.19,69.84
+Samsung,Galaxy A50,"SM-A505F",6.4,147.6,68.12
+Google,Pixel 8 Pro,"GC3VE",6.7,155.19,69.84
+Google,Pixel 8,"GKWS6",6.2,143.61,64.62
+Google,Pixel 7 Pro,"GE2AE",6.7,154.52,71.32
+Google,Pixel 7,"GVU6C",6.3,145.93,65.67
+Google,Pixel 6 Pro,"GLU0G",6.7,154.52,71.32
+Google,Pixel 6,"GR1YH",6.4,148.24,66.71
+Google,Pixel 5,"GD1YQ",6,138.37,63.86
+Google,Pixel 4a,"G025J",5.8,133.76,61.74
+OnePlus,OnePlus 12,"CPH2581",6.82,157.7,71.68
+OnePlus,OnePlus 11,"CPH2449",6.7,155.19,69.84
+OnePlus,OnePlus 10 Pro,"NE2213",6.7,155.19,69.84
+OnePlus,OnePlus 9 Pro,"LE2123",6.7,155.19,69.84
+OnePlus,OnePlus 8 Pro,"IN2023",6.78,156.78,71.26
+OnePlus,OnePlus 7 Pro,"GM1913",6.67,153.82,71
+OnePlus,Nord 3,"CPH2493",6.74,156.12,70.25
+Xiaomi,Xiaomi 14 Ultra,"24030PN60G",6.73,155.89,70.15
+Xiaomi,Xiaomi 13 Pro,"2210132G",6.73,155.89,70.15
+Xiaomi,Redmi Note 13 Pro+,"23090RA98G",6.67,154.5,69.52
+Xiaomi,Redmi Note 12 Pro,"22101316G",6.67,154.5,69.52
+Xiaomi,POCO F5,"23049PCD8G",6.67,154.5,69.52
