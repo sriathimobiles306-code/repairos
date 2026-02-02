@@ -35,9 +35,10 @@ export class AdminService {
             if (brandRes.rows.length > 0) {
                 brandId = brandRes.rows[0].id;
             } else {
+                const slug = brandName.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                 const newBrand = await client.query(
-                    'INSERT INTO brands (name) VALUES ($1) RETURNING id',
-                    [brandName]
+                    'INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING id',
+                    [brandName, slug]
                 );
                 brandId = newBrand.rows[0].id;
             }
@@ -256,9 +257,10 @@ export class AdminService {
                 if (brandRes.rows.length > 0) {
                     brandId = brandRes.rows[0].id;
                 } else {
+                    const slug = item.brand.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                     const newBrand = await client.query(
-                        'INSERT INTO brands (name) VALUES ($1) RETURNING id',
-                        [item.brand]
+                        'INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING id',
+                        [item.brand, slug]
                     );
                     brandId = newBrand.rows[0].id;
                 }
