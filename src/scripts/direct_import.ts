@@ -67,25 +67,30 @@ async function run() {
         // Insert missing
         const missingSlugs = slugs.filter(s => !brandIdMap.has(s));
         if (missingSlugs.length > 0) {
-            console.log(`✨ Creating ${missingSlugs.length} new brands...`);
-            for (const s of missingSlugs) {
-                // Insert one by one to avoid complex huge query (safe enough for 500 brands)
-                try {
-                    const splitRes = await client.query(
-                        'INSERT INTO brands (name, slug) VALUES ($1, $2) ON CONFLICT (slug) DO NOTHING RETURNING id',
-                        [brandMap.get(s), s]
-                    );
-                    if (splitRes.rows.length > 0) {
-                        brandIdMap.set(s, splitRes.rows[0].id);
-                    } else {
-                        // Was inserted by someone else or race condition, fetch it
-                        const retry = await client.query('SELECT id FROM brands WHERE slug = $1', [s]);
-                        brandIdMap.set(s, retry.rows[0].id);
-                    }
-                } catch (e) {
-                    console.error(`Warning: Failed to create brand ${s}`, e);
-                }
-            }
+            console.log(`✨ Bulk Creating ${missingSlugs.length} new brands (Single Query)...`);
+
+            const brandValues: any[] = [];
+            const brandPlaceholders: string[] = [];
+            let bpIdx = 1;
+
+            missingSlugs.forEach(s => {
+                brandPlaceholders.push(`($${bpIdx}, $${bpIdx + 1})`);
+                brandValues.push(brandMap.get(s), s); // name, slug
+                bpIdx += 2;
+            });
+
+            const bulkBrandQuery = `
+                INSERT INTO brands (name, slug) 
+                VALUES ${brandPlaceholders.join(', ')}
+                ON CONFLICT (slug) DO NOTHING
+            `;
+
+            await client.query(bulkBrandQuery, brandValues);
+            console.log('✅ Brands created. Refreshing cache...');
+
+            // Refresh Map
+            const refreshRes = await client.query('SELECT id, slug FROM brands');
+            refreshRes.rows.forEach(r => brandIdMap.set(r.slug, r.id));
         }
 
         // 3. Batch Insert Models
