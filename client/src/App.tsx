@@ -26,7 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AdminProtectedRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('adminToken');
   // Strict: If no token, or if we want to be fancy, decode and check role.
   // For now, redirect to ADMIN login if missing.
   if (!token) return <Navigate to="/admin/login" replace />;

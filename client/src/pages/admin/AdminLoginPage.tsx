@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
             const data = await res.json();
 
             if (res.ok) {
-                localStorage.setItem('token', data.access_token);
+                localStorage.setItem('adminToken', data.access_token);
                 // Redirect based on role (future), for now dashboard
                 window.location.href = '/admin'; // Force reload or standard navigate
             } else {
