@@ -29,9 +29,9 @@ export default function ImportPage() {
                 const cols = line.split(',');
                 if (cols.length >= 2) {
                     data.push({
-                        brand: cols[0].trim(),
-                        model: cols[1].trim(),
-                        aliases: cols[2] ? cols[2].trim().replace(/"/g, '') : '', // Handle quotes
+                        brand: cols[0].trim().replace(/"/g, ''),
+                        model: cols[1].trim().replace(/"/g, ''),
+                        aliases: cols[2] ? cols[2].trim().replace(/"/g, '') : '',
                         diagonal: cols[3] ? parseFloat(cols[3]) : undefined,
                         width: cols[4] ? parseFloat(cols[4]) : undefined,
                         height: cols[5] ? parseFloat(cols[5]) : undefined
@@ -43,30 +43,58 @@ export default function ImportPage() {
         reader.readAsText(file);
     };
 
+    const [progress, setProgress] = useState(0);
+
     const handleUpload = async () => {
         if (!preview.length) return;
         setIsUploading(true);
+        setProgress(0);
+
+        const BATCH_SIZE = 500;
+        let totalAdded = 0;
+        let totalSkipped = 0;
+        let hasError = false;
+
+        const adminToken = localStorage.getItem('adminToken');
+
         try {
-            const adminToken = localStorage.getItem('adminToken');
-            const res = await fetch('/api/admin/import/phones', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${adminToken}`
-                },
-                body: JSON.stringify({ phones: preview })
-            });
-            const json = await res.json();
-            setResult(json);
-            if (json.success) {
-                setFile(null);
-                setPreview([]);
+            for (let i = 0; i < preview.length; i += BATCH_SIZE) {
+                const batch = preview.slice(i, i + BATCH_SIZE);
+
+                const res = await fetch('/api/admin/import/phones', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({ phones: batch })
+                });
+
+                if (!res.ok) {
+                    throw new Error(`Batch failed: ${res.statusText}`);
+                }
+
+                const json = await res.json();
+                if (json.success) {
+                    totalAdded += json.added || 0;
+                    totalSkipped += json.skipped || 0;
+                }
+
+                // Update Progress
+                setProgress(Math.round(((i + batch.length) / preview.length) * 100));
             }
+
+            setResult({ success: true, added: totalAdded, skipped: totalSkipped });
+            setFile(null);
+            setPreview([]);
+
         } catch (e) {
             console.error(e);
             setResult({ success: false });
+            hasError = true;
         } finally {
             setIsUploading(false);
+            setProgress(0);
         }
     };
 
@@ -100,7 +128,7 @@ export default function ImportPage() {
                     >
                         <FileText size={48} color="#94a3b8" style={{ marginBottom: '15px' }} />
                         <h3 style={{ marginBottom: '10px' }}>Click to Upload CSV</h3>
-                        <p style={{ color: '#64748b' }}>Format: Brand, Model, Aliases</p>
+                        <p style={{ color: '#64748b' }}>Format: Brand, Model, Aliases, [Diag, W, H]</p>
                         <input
                             id="csv-upload"
                             type="file"
@@ -117,6 +145,13 @@ export default function ImportPage() {
                             <span style={{ color: '#64748b' }}>({preview.length} rows)</span>
                         </div>
 
+                        {/* Progress Bar */}
+                        {isUploading && (
+                            <div style={{ width: '100%', background: '#e2e8f0', borderRadius: '99px', height: '10px', marginBottom: '20px', overflow: 'hidden' }}>
+                                <div style={{ width: `${progress}%`, background: '#6366f1', height: '100%', transition: 'width 0.3s ease' }}></div>
+                            </div>
+                        )}
+
                         <div style={{ background: '#1e293b', color: '#e2e8f0', padding: '15px', borderRadius: '8px', textAlign: 'left', fontSize: '0.85rem', marginBottom: '20px', maxHeight: '200px', overflowY: 'auto' }}>
                             <code>
                                 {preview.slice(0, 5).map((row, i) => (
@@ -129,16 +164,17 @@ export default function ImportPage() {
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button
                                 onClick={() => { setFile(null); setPreview([]); setResult(null); }}
-                                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}
+                                disabled={isUploading}
+                                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', opacity: isUploading ? 0.5 : 1 }}
                             >
                                 Cancel
                             </button>
                             <button
                                 onClick={handleUpload}
                                 disabled={isUploading}
-                                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#6366f1', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#6366f1', color: 'white', fontWeight: 600, cursor: 'pointer', opacity: isUploading ? 0.7 : 1 }}
                             >
-                                {isUploading ? 'Importing...' : 'Start Import'}
+                                {isUploading ? `Importing ${progress}%...` : 'Start Import'}
                             </button>
                         </div>
                     </div>
