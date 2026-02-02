@@ -19,111 +19,114 @@ const pool = new Pool({
 async function run() {
     if (!fs.existsSync(csvFilePath)) {
         console.error(`❌ gsm.csv not found at ${csvFilePath}`);
-        console.error('Please put the file in the project root folder.');
         process.exit(1);
     }
 
-    console.log('🚀 Starting Direct Import from gsm.csv...');
+    console.log('🚀 Reading CSV...');
     const content = fs.readFileSync(csvFilePath, 'utf-8');
-    const lines = content.split('\n');
+    const lines = content.split('\n').filter(l => l.trim().length > 0);
+    console.log(`📊 Found ${lines.length} lines. Processing...`);
 
     const client = await pool.connect();
-
-    // Cache: slug -> brandId
-    const brandCache = new Map<string, number>();
-
-    let added = 0;
-    let skipped = 0;
 
     try {
         await client.query('BEGIN');
 
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
+        // 1. Parsing & Deduplication
+        const brandMap = new Map<string, string>(); // slug -> name
+        const rows: { slug: string, model: string, aliases: string }[] = [];
 
-            // Basic CSV split (handling simple commas)
-            // Note: If fields have commas inside quotes, this simple split breaks. 
-            // But looking at screenshot, it seems standard. 
-            // Better regex split: 
-            const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
+        for (const line of lines) {
+            // Regex to handle "Brand", "Model", "Alias"
+            const cols = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+            if (!cols || cols.length < 2) continue;
 
-            if (cols.length < 2) continue;
+            const brandName = clean(cols[0]);
+            const modelName = clean(cols[1]);
+            const alias = cols[2] ? clean(cols[2]) : '';
 
-            const brandRaw = clean(cols[0]);
-            const modelRaw = clean(cols[1]);
-            const aliasRaw = cols[2] ? clean(cols[2]) : '';
+            if (!brandName || !modelName) continue;
 
-            // Just basic Dimensions mapping if they exist (cols 3,4,5)
-            // Not focus here, user wants GSM list mainly.
+            const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+            brandMap.set(slug, brandName);
+            rows.push({ slug, model: modelName, aliases: alias });
+        }
 
-            if (!brandRaw || !modelRaw) continue;
+        console.log(`🔍 Identified ${brandMap.size} unique brands.`);
 
-            // --- 1. HANDLE BRAND ---
-            let brandId: number;
-            const slug = brandRaw.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+        // 2. Sync Brands (Bulk)
+        const slugs = Array.from(brandMap.keys());
+        const brandIdMap = new Map<string, number>();
 
-            if (brandCache.has(slug)) {
-                brandId = brandCache.get(slug)!;
-            } else {
-                // Check DB
-                const res = await client.query('SELECT id FROM brands WHERE slug = $1', [slug]);
+        // Get existing
+        if (slugs.length > 0) {
+            const existingRes = await client.query('SELECT id, slug FROM brands');
+            existingRes.rows.forEach(r => brandIdMap.set(r.slug, r.id));
+        }
 
-                if (res.rows.length > 0) {
-                    brandId = res.rows[0].id;
-                } else {
-                    // Try by Name
-                    const resName = await client.query('SELECT id FROM brands WHERE name ILIKE $1', [brandRaw]);
-                    if (resName.rows.length > 0) {
-                        brandId = resName.rows[0].id;
+        // Insert missing
+        const missingSlugs = slugs.filter(s => !brandIdMap.has(s));
+        if (missingSlugs.length > 0) {
+            console.log(`✨ Creating ${missingSlugs.length} new brands...`);
+            for (const s of missingSlugs) {
+                // Insert one by one to avoid complex huge query (safe enough for 500 brands)
+                try {
+                    const splitRes = await client.query(
+                        'INSERT INTO brands (name, slug) VALUES ($1, $2) ON CONFLICT (slug) DO NOTHING RETURNING id',
+                        [brandMap.get(s), s]
+                    );
+                    if (splitRes.rows.length > 0) {
+                        brandIdMap.set(s, splitRes.rows[0].id);
                     } else {
-                        // Create
-                        try {
-                            const ins = await client.query(
-                                'INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING id',
-                                [brandRaw, slug]
-                            );
-                            brandId = ins.rows[0].id;
-                        } catch (e: any) {
-                            if (e.code === '23505') {
-                                const retry = await client.query('SELECT id FROM brands WHERE slug = $1', [slug]);
-                                brandId = retry.rows[0].id;
-                            } else {
-                                throw e;
-                            }
-                        }
+                        // Was inserted by someone else or race condition, fetch it
+                        const retry = await client.query('SELECT id FROM brands WHERE slug = $1', [s]);
+                        brandIdMap.set(s, retry.rows[0].id);
                     }
+                } catch (e) {
+                    console.error(`Warning: Failed to create brand ${s}`, e);
                 }
-                brandCache.set(slug, brandId);
             }
+        }
 
-            // --- 2. HANDLE MODEL ---
-            const modelRes = await client.query(
-                'SELECT id FROM mobile_models WHERE brand_id = $1 AND name ILIKE $2',
-                [brandId, modelRaw]
-            );
+        // 3. Batch Insert Models
+        console.log(`📦 Bulk Inserting Models in batches of 1000...`);
+        let inserted = 0;
 
-            if (modelRes.rows.length === 0) {
-                await client.query(
-                    'INSERT INTO mobile_models (brand_id, name, aliases) VALUES ($1, $2, $3)',
-                    [brandId, modelRaw, aliasRaw ? [aliasRaw] : []]
-                );
-                added++;
-            } else {
-                skipped++;
-            }
+        // Group models by 1000
+        const BATCH_SIZE = 1000;
+        for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+            const batch = rows.slice(i, i + BATCH_SIZE);
+            const values: any[] = [];
+            const placeholders: string[] = [];
 
-            if ((i + 1) % 100 === 0) {
-                console.log(`Processed ${i + 1} lines...`);
+            let pIdx = 1;
+            batch.forEach(row => {
+                const bId = brandIdMap.get(row.slug);
+                if (bId) {
+                    placeholders.push(`($${pIdx}, $${pIdx + 1}, $${pIdx + 2})`);
+                    values.push(bId, row.model, row.aliases ? [row.aliases] : []); // Aliases as text[]
+                    pIdx += 3;
+                }
+            });
+
+            if (placeholders.length > 0) {
+                const query = `
+                    INSERT INTO mobile_models (brand_id, name, aliases) 
+                    VALUES ${placeholders.join(', ')}
+                    ON CONFLICT DO NOTHING
+                `;
+                await client.query(query, values);
+                inserted += placeholders.length;
+                process.stdout.write('.');
             }
         }
 
         await client.query('COMMIT');
-        console.log(`\n✅ DONE! Added: ${added}, Skipped: ${skipped}`);
+        console.log(`\n✅ SUCCESS! Processed ${inserted} models.`);
 
     } catch (e) {
         await client.query('ROLLBACK');
-        console.error('❌ Error:', e);
+        console.error('\n❌ FATAL ERROR:', e);
     } finally {
         client.release();
         pool.end();
