@@ -250,26 +250,46 @@ export class AdminService {
             let skippedCount = 0;
 
             for (const item of data) {
-                // 1. Get/Create Brand (Cache could optimize this)
+                // 1. Get/Create Brand (Robust "Get or Create" by Slug)
                 let brandId: number;
-                const brandRes = await client.query('SELECT id FROM brands WHERE name ILIKE $1', [item.brand]);
+                const cleanName = item.brand.trim();
+                const slug = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+                // First check by Slug (most reliable canonical check)
+                const brandRes = await client.query('SELECT id FROM brands WHERE slug = $1', [slug]);
 
                 if (brandRes.rows.length > 0) {
                     brandId = brandRes.rows[0].id;
                 } else {
-                    const slug = item.brand.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-                    const newBrand = await client.query(
-                        'INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING id',
-                        [item.brand, slug]
-                    );
-                    brandId = newBrand.rows[0].id;
+                    // Double check by Name (just in case slug logic changed)
+                    const nameRes = await client.query('SELECT id FROM brands WHERE name ILIKE $1', [cleanName]);
+                    if (nameRes.rows.length > 0) {
+                        brandId = nameRes.rows[0].id;
+                    } else {
+                        // Create New
+                        try {
+                            const newBrand = await client.query(
+                                'INSERT INTO brands (name, slug) VALUES ($1, $2) RETURNING id',
+                                [cleanName, slug]
+                            );
+                            brandId = newBrand.rows[0].id;
+                        } catch (err: any) {
+                            // Race condition handle: if parallel insert happened
+                            if (err.code === '23505') { // unique_violation
+                                const retry = await client.query('SELECT id FROM brands WHERE slug = $1', [slug]);
+                                brandId = retry.rows[0].id;
+                            } else {
+                                throw err;
+                            }
+                        }
+                    }
                 }
 
                 // 2. Insert Model if not exists
                 let modelId: number;
                 const dupCheck = await client.query(
                     'SELECT id FROM mobile_models WHERE brand_id = $1 AND name ILIKE $2',
-                    [brandId, item.model]
+                    [brandId, item.model.trim()]
                 );
 
                 if (dupCheck.rows.length > 0) {
