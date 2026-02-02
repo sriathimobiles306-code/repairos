@@ -12,7 +12,8 @@ const csvFilePath = path.join(process.cwd(), 'gsm.csv');
 const clean = (str: string) => str ? str.trim().replace(/^"|"$/g, '').trim() : '';
 
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL
+    connectionString: process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_2TK5hXYqIVri@ep-delicate-tree-aft7ig8b-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require',
+    ssl: { rejectUnauthorized: false } // Force SSL for NeonDB
 });
 
 async function run() {
