@@ -17,23 +17,17 @@ export class AdminController {
 
     @Post('screens')
     async createScreen(@Body() dto: any, @User() user: UserContext) {
-        if (user.role !== 'OWNER') {
-            throw new UnauthorizedException('Admin access required');
-        }
         return this.adminService.createScreen(dto);
     }
 
     @Get('stats')
+    @Get('stats')
     async getStats(@User() user: UserContext) {
-        if (user.role !== 'OWNER') {
-            throw new UnauthorizedException('Admin access required');
-        }
         return this.adminService.getStats();
     }
 
     @Get('rules')
     async getRules(@User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.getPendingRules();
     }
 
@@ -58,38 +52,32 @@ export class AdminController {
 
     @Get('unmapped-phones')
     async getUnmappedPhones(@User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.getUnmappedPhones();
     }
 
     @Get('all-screens')
     async getAllScreens(@User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.getAllScreens();
     }
 
     @Post('map-phone')
     async mapPhone(@Body() body: { modelId: number; screenId: number }, @User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.mapPhoneToScreen(body.modelId, body.screenId, user.userId);
     }
 
     @Post('import/phones')
     async importPhones(@Body() body: { phones: any[] }, @User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         // Validation could be added here (max 500 items etc)
         return this.adminService.importPhones(body.phones);
     }
 
     @Patch('inventory/stock')
     async updateStock(@Body() body: { sku: string; qty: number }, @User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.updateStock(body.sku, body.qty);
     }
 
     @Get('inventory')
     async listInventory(@User() user: UserContext) {
-        if (user.role !== 'OWNER') throw new UnauthorizedException();
         return this.adminService.listInventory();
     }
 }
