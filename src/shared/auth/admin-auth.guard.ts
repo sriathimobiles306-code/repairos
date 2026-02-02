@@ -11,19 +11,25 @@ export class AdminGuard implements CanActivate {
         const request = context.switchToHttp().getRequest<Request>();
         const token = this.extractTokenFromHeader(request);
 
-        if (!token) throw new UnauthorizedException('No Admin Token');
+        if (!token) {
+            console.log('AdminGuard: No Token Found');
+            throw new UnauthorizedException('No Admin Token');
+        }
 
         try {
             const payload: any = jwt.verify(token, this.JWT_SECRET);
+            console.log('AdminGuard: Payload:', payload);
 
             // STRICT CHECK: Type must be 'admin'
             if (payload.type !== 'admin') {
+                console.log('AdminGuard: Type Mismatch', payload.type);
                 throw new UnauthorizedException('Access Denied: Not an Admin');
             }
 
-            request['user'] = { ...payload, userId: payload.sub }; // Map sub to userId for compatibility
+            request['user'] = { ...payload, userId: payload.sub };
             return true;
         } catch (err) {
+            console.log('AdminGuard: Verify Failed:', err.message);
             throw new UnauthorizedException('Invalid Admin Token');
         }
     }
