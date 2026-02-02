@@ -50,9 +50,8 @@ export default function ImportPage() {
         setIsUploading(true);
         setProgress(0);
 
-        // 504 Timeout Fix: Reduced Batch Size from 500 to 50
-        // Because we do heavy DB checks (Slug/Brand), 500 takes too long (>60s).
-        const BATCH_SIZE = 50;
+        // 504 Timeout Fix v2: Reduced Batch Size to 20 + Added Caching in Backend
+        const BATCH_SIZE = 20;
         let totalAdded = 0;
         let totalSkipped = 0;
         let hasError = false;
