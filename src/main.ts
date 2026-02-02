@@ -7,7 +7,8 @@ async function bootstrap() {
     // Enable CORS for Frontend (Vite)
     app.enableCors();
     app.setGlobalPrefix('api');
-    await app.listen(3000);
-    console.log('Application is running on: http://localhost:3000/api');
+    const port = process.env.PORT || 3000;
+    await app.listen(port);
+    console.log(`Application is running on: http://localhost:${port}/api`);
 }
 bootstrap();
